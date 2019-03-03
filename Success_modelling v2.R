@@ -20,6 +20,8 @@ temp <- raw %>% filter(Impact..Started.Business %in% c("Yes","No"))
 temp <- temp %>% filter(!(Ownership.Gender=="Choose not to respond")) 
 temp <- temp %>% filter(!(Owner.s.Race=="Choose not to respond"))
 raw_regdata <- temp %>% filter(!(Owner.s.Race=="Choose not to respond"))
+raw_regdata <- raw_regdata %>% filter(!(Owner.s.Hispanic.Origin == "Choose not to respond"))
+
 raw_regdata$old_emp <- raw_regdata$Company.s.Total.employees - raw_regdata$Impact..Created.New.Jobs
 nrow(raw_regdata)
 table(raw_regdata$Business.Status)
@@ -63,7 +65,7 @@ raw_regdata$Owner.s.Race <- relevel(raw_regdata$Owner.s.Race, ref = "Black or Af
 reg <- glm(started ~ as.factor(County) + as.factor(Attended.Group.Training.) + old_emp + NAICS.code 
                     +as.factor(Initial.Services.Sought.at.First.Visit)
                     + as.factor(Owner.s.Hispanic.Origin) +as.factor(Ownership.Gender) 
-                    +as.factor(Owner.s.Race) 
+                    +as.factor(Owner.s.Race) + Total.Counseling.Time..hrs
                     ,data = raw_regdata, family = binomial(link = "logit"), control = list(maxit = 50))
 
 summary(reg)

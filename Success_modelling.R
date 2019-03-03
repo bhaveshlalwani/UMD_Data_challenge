@@ -1,3 +1,5 @@
+rm = (list = ls())
+
 library(dplyr)
 library(tidyverse)
 #library(DataExplorer)
@@ -14,10 +16,14 @@ head(raw)
 tail(raw)
 str(raw)
 
-raw_regdata <- raw %>% filter(Impact..Started.Business %in% c("Yes","No"))
+temp <- raw %>% filter(Impact..Started.Business %in% c("Yes","No"))
+temp <- temp %>% filter(!(Ownership.Gender=="Choose not to respond")) 
+temp <- temp %>% filter(!(Owner.s.Race=="Choose not to respond"))
+raw_regdata <- temp %>% filter(!(Owner.s.Race=="Choose not to respond"))
+raw_regdata$old_emp <- raw_regdata$Company.s.Total.employees - raw_regdata$Impact..Created.New.Jobs
 nrow(raw_regdata)
-table(raw$Business.Status)
-
+table(raw_regdata$Business.Status)
+table(raw_regdata$Impact..Started.Business)
 attach(raw_regdata)
 
 table(Owner.s.Hispanic.Origin, Impact..Started.Business)
@@ -74,15 +80,17 @@ temp <- add_rownames(temp, c("Industry", "rate"))
 quantile(temp$`ind_data$rate`)
   #0%   25%  50%  75%   100% 
   #0.0 0.30 0.33 0.39  0.600
-high_ind <- temp%>%filter(`ind_data$rate`> 0.38) %>% select(Industry)
+high_ind <- temp%>%filter(`ind_data$rate`>= 0.39) %>% select(Industry)
 raw_regdata$HI <- if_else(NAICS.code %in% high_ind$Industry, 1,0)
 
 reg2 <- glm(started ~ as.factor(CC) + as.factor(Attended.Group.Training.) + Total.Counseling.Time..hrs
-            + Company.s.Total.employees + Company.s.Gross.Revenue... + HI
+            + old_emp + Company.s.Gross.Revenue... + HI + Male
             ,data = raw_regdata, family = binomial(link = "logit"), control = list(maxit = 50))
 
 summary(reg2)
 
+
+#Trying balanced data set
 
 
 
